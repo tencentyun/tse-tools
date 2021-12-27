@@ -1,0 +1,6 @@
+.idea
+.vscode/
+zk2zk
+t_sync/t_sync
+all_sync/all_sync
+*.log
