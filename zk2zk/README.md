@@ -93,22 +93,22 @@ zk2zk是有两个子程序构成：`all_sync`和`t_sync`。不同子程序面对
  
 |  编号   | dst  | src | 操作 |
 |  :----:  | :----:  | :----: | :---- |
-| 17 | 有P | 没P | 忽略，交由all_synct处理 |
-| 18 | 有P | 没E | 忽略，交由all_synct处理 |
-| 19 | 有P | 有P | 忽略，交由all_synct处理 |
-| 20 | 有P | 有E | 忽略，交由all_synct处理 |
+| 17 | 有P | 没P | 忽略，交由all_sync处理 |
+| 18 | 有P | 没E | 忽略，交由all_sync处理 |
+| 19 | 有P | 有P | 忽略，交由all_sync处理 |
+| 20 | 有P | 有E | 忽略，交由all_sync处理 |
 | 21 | 有E | 没P | 记录到/zk2zk_migration中，然后在src端创建P |
 | 22 | 有E | 没E | 记录到/zk2zk_migration中，然后在src端创建P |
 | 23 | 有E | 有P | 如果值不同，更新src端值为dst端的值 | 
 | 24 | 有E | 有E | 日志告警 |
-| 25 | 没P | 没P | 忽略，交由all_synct处理 |
-| 26 | 没P | 没E | 忽略，交由all_synct处理 |
-| 27 | 没P | 有P | 忽略，交由all_synct处理 |
-| 28 | 没P | 有E | 忽略，交由all_synct处理 | 
-| 29 | 没E | 没P | 忽略，交由all_synct处理 |
-| 30 | 没E | 没E | 忽略，交由all_synct处理 |
+| 25 | 没P | 没P | 忽略，交由all_sync处理 |
+| 26 | 没P | 没E | 忽略，交由all_sync处理 |
+| 27 | 没P | 有P | 忽略，交由all_sync处理 |
+| 28 | 没P | 有E | 忽略，交由all_sync处理 | 
+| 29 | 没E | 没P | 忽略，交由all_sync处理 |
+| 30 | 没E | 没E | 忽略，交由all_sync处理 |
 | 31 | 没E | 有P | 如果/zk2zk_migration下有记录,先删除src端节点，后删除/zk2zk_migration中的记录 |
-| 32 | 没E | 有E | 忽略，交由all_synct处理 |
+| 32 | 没E | 有E | 忽略，交由all_sync处理 |
 
 我们可以从 `pkg/migration/strategy.go` 与 `pkg/migration/strategy_test.go` 代码中了解更多关于同步规则的细节和示例。
 
