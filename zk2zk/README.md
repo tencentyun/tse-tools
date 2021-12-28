@@ -86,13 +86,13 @@ zk2zk 包含两个子工具：
 - 一类是节点的操作信息，zk2zk会以 `[操作]\t[结果]\t[额外信息]\t[操作对象]` 的结构输出对某个节点进行过的同步操作。
 示例日志如下所示，日志记录了客户端在源ZK对`/service1045`进行操作时，`all_sync` 程序在目的ZK同步进行的操作。
 
-<img src="./docs/node_status_log.png" width="30%"/>
+<img src="./docs/node_status_log.png" width="80%"/>
   
 - 一类是程序的同步进度信息，zk2zk会以 `SrcNodeCount: [%d]\tDstNodeCount: [%d]\tChangedNodeCount: [%d]` 的结构输出src端的节点个数、dst端的节点个数、对账会影响的节点个数。
 我们可以通过`grep SrcNodeCount` 来了解到整个同步工具的运行进度。当然，`/zookeeper`和`/zk2zk_migration`自身以及其子节点不会被计算在内。
 示例日志如下所示，日志记录了同步程序运行时，源ZK和目的ZK节点的同步进度。
 
-<img src="./docs/node_summary_log.png" width="30%"/>  
+<img src="./docs/node_summary_log.png" width="80%"/>  
 
 #### 启动参数
 
