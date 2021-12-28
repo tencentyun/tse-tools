@@ -60,18 +60,18 @@ zk2zk 包含两个子工具：
 
 - 操作：在全部客户端切换到目的ZK后，停止源ZK
 
-#### 注意事项
-
-- all_sync和t_sync在同步临时节点时，会将临时节点转换为持久化节点。通常不影响客户端读取
-- t_sycn会在目的ZK 上创建/zk2zk_migration 节点，在该节点下保存从目的ZK 同步到源ZK 的临时节点
-- all_sync在同步数据时，会从目的ZK 上读取/zk2zk_migration进行对比，避免循环同步
-
 #### 异常处理
 
 - 源ZK 故障：当源ZK 恢复正常时，zk2zk可以继续工作，无需处理
 - 目的ZK 故障：当源ZK 恢复正常时，zk2zk可以继续工作，无需处理
 - all_sync 故障：重启all_sync，数据可以继续同步
 - t_sync 故障：重启t_sync，数据可以继续同步
+
+#### 注意事项
+
+- all_sync和t_sync在同步临时节点时，会将临时节点转换为持久化节点。通常不影响客户端读取
+- t_sycn会在目的ZK 上创建/zk2zk_migration 节点，在该节点下保存从目的ZK 同步到源ZK 的临时节点
+- all_sync在同步数据时，会从目的ZK 上读取/zk2zk_migration进行对比，避免循环同步
 
 ## 使用指南
 
