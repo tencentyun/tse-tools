@@ -1,7 +1,5 @@
 # zk2zk
 
-## 简介
-
 zk2zk 是一款zookeeper 热迁移工具，帮助用户从自建平滑迁移到腾讯云
 
 zk2zk 包含两个子工具：
@@ -21,6 +19,14 @@ zk2zk 包含两个子工具：
 - 对于接入目的ZK 的客户端，可以读取注册到源ZK 的客户端数据
 - 接入目的ZK 的客户端数据由t_sync 同步到源ZK
 - 对于还在源ZK 的客户端，可以读取注册到目的ZK 的客户端数据
+
+## 如何构建
+
+依赖 [Golang 1.16]()
+
+```
+make all
+```
 
 ## 快速入门
 
@@ -125,12 +131,4 @@ Flags:
       --workerRetryCnt int              the count of worker retry if failed
       --zkEventBuffer int               the length of zookeeper event buffer
       --zkEventWorkerLimit int          the limit number of zookeeper event handler
-```
-
-## 如何构建
-
-依赖 [Golang 1.16]()
-
-```
-make all
 ```
