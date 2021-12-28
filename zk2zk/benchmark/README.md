@@ -1,4 +1,10 @@
 # 性能测试
+测试是，为了减少输出，将stdout关闭。启动命令分别是：
+```
+nohup ./all_sync start --logEnableStdout=false --srcAddr DSTADDR --dstAddr SRCADDR  >> all_sync_stdout 2>&1 &
+nohup ./t_sync start --logEnableStdout=false --srcAddr SRCADDR --dstAddr DSTADDR  >> t_sync_stdout 2>&1 &
+```
+
 ## 启动时同步性能
 zk2zk会在启动的时候会同步和watch所有的节点，此处测试zk2zk启动的时候同步的性能。
 - case1：启动前源端ZK创建10个持久化节点，每个持久化节点下在创建1000个持久化节点。zk2zk启动同步耗时：11s。
