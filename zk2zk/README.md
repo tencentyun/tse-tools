@@ -22,15 +22,9 @@ zk2zk 包含两个子工具：
 - 接入目的ZK 的客户端数据由t_sync 同步到源ZK
 - 对于还在源ZK 的客户端，可以读取注册到目的ZK 的客户端数据
 
-## 如何构建
-
-依赖 [Golang 1.16]()
-
-```
-make all
-```
-
 ## 使用指南
+
+### 快速入门
 
 #### 下载工具
 
@@ -67,7 +61,7 @@ t_sync
 - 使用持久化节点在`dstAddr`来模拟`srcAddr`创建的临时节点的整个生命周期。
 - 
 
-## 查看日志
+### 查看日志
 
 `all_sync` 和 `t_sync` 在启动之后，都会在当前运行目录下，创建两类日志目录`runtime`和`monitor`。
 `runtime` 中保存的是程序运行的日志，`monitor` 中保存的是程序的审计日志。  
@@ -81,7 +75,7 @@ t_sync
 所以如果同步完成了，SrcNodeCount的值通常是和DstNodeCount的值相等的。  
 
 
-## 启动参数
+### 启动参数
 
 在启动zk2zk的时候，可以通过执行时添加`-h`参数来了解更多可选选项。
 
@@ -118,4 +112,12 @@ Flags:
       --workerRetryCnt int              the count of worker retry if failed
       --zkEventBuffer int               the length of zookeeper event buffer
       --zkEventWorkerLimit int          the limit number of zookeeper event handler
+```
+
+## 如何构建
+
+依赖 [Golang 1.16]()
+
+```
+make all
 ```
