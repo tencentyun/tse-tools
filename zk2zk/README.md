@@ -80,13 +80,19 @@ zk2zk 包含两个子工具：
 `all_sync` 和 `t_sync` 在启动之后，都会在当前运行目录下，创建两类日志目录`runtime`和`monitor`。
 `runtime` 中保存的是程序运行的日志，`monitor` 中保存的是程序的审计日志。  
 
-对于运行日志，我们可以通过在启动时添加 `--logPath` 参数来调整其日志存储路径，`--logLevel`参数来调整其日志打印级别。更多选项，可以通过执行时添加`-h`参数来了解。  
+对于运行日志，其记录了程序内部的运行情况，通过运行日志，可以了解程序的运行状态。  
 
-对于审计日志，我们也可以通过在启动时添加 `--monitorLogPath` 参数来调整其日志存储路径。审计日志中记录了两类信息：  
-- 一类是某个节点的整个生命周期，zk2zk会以 `[操作]\t[结果]\t[额外信息]\t[操作对象]` 的结构输出对一个节点操作的整个生命周期；  
-- 另一类是整体的同步记录，zk2zk会以 `SrcNodeCount: [%d]\tDstNodeCount: [%d]\tChangedNodeCount: [%d]` 的结构输出src端的节点个数、dst端的节点个数、对账会影响的节点个数。
-我们可以通过`grep SrcNodeCount` 来了解到整个同步工具的运行进度。当然，同步工具不会将`/zookeeper`和`/zk2zk_migration`自身以及其节点下所有子节点计算在内，
-所以如果同步完成了，SrcNodeCount的值通常是和DstNodeCount的值相等的。  
+对于审计日志，其记录了两类信息：  
+- 一类是节点的操作信息，zk2zk会以 `[操作]\t[结果]\t[额外信息]\t[操作对象]` 的结构输出对某个节点进行过的同步操作。
+示例日志如下所示，日志记录了客户端在源ZK对`/service1045`进行操作时，`all_sync` 程序在目的ZK同步进行的操作。
+
+<img src="./docs/node_status_log.png" width="30%"/>
+  
+- 一类是程序的同步进度信息，zk2zk会以 `SrcNodeCount: [%d]\tDstNodeCount: [%d]\tChangedNodeCount: [%d]` 的结构输出src端的节点个数、dst端的节点个数、对账会影响的节点个数。
+我们可以通过`grep SrcNodeCount` 来了解到整个同步工具的运行进度。当然，`/zookeeper`和`/zk2zk_migration`自身以及其子节点不会被计算在内。
+示例日志如下所示，日志记录了同步程序运行时，源ZK和目的ZK节点的同步进度。
+
+<img src="./docs/node_summary_log.png" width="30%"/>  
 
 #### 启动参数
 
