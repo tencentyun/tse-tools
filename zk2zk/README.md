@@ -69,9 +69,9 @@ zk2zk 包含两个子工具：
 
 #### 注意事项
 
-- all_sync和t_sync在同步临时节点时，会将临时节点转换为持久化节点。通常不影响客户端读取
-- t_sycn会在目的ZK 上创建/zk2zk_migration 节点，在该节点下记录从目的ZK 同步到源ZK 的临时节点
-- all_sync在同步数据时，会从目的ZK 上读取/zk2zk_migration进行对比，避免循环同步数据
+- all_sync 和t_sync 在同步临时节点时，会将临时节点转换为持久化节点。通常不影响客户端读取
+- t_sycn 会在目的ZK 上创建/zk2zk_migration 节点，在该节点下记录从目的ZK 同步到源ZK 的临时节点
+- all_sync 在同步数据时，会从目的ZK 上读取/zk2zk_migration 进行对比，避免循环同步数据
 
 ## 使用指南
 
