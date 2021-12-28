@@ -1,5 +1,5 @@
 # 性能测试
-测试是，为了减少输出，将stdout关闭。启动命令分别是：
+为了减少输出，性能测试时将stdout关闭。启动命令分别是：
 ```
 nohup ./all_sync start --logEnableStdout=false --srcAddr DSTADDR --dstAddr SRCADDR  >> all_sync_stdout 2>&1 &
 nohup ./t_sync start --logEnableStdout=false --srcAddr SRCADDR --dstAddr DSTADDR  >> t_sync_stdout 2>&1 &
