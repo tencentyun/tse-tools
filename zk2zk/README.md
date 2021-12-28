@@ -1,14 +1,16 @@
 # zk2zk
+
 zk2zk 是一款zookeeper数据迁移的工具。
 
-# 如何构建
+## 如何构建
+
 依赖 [Golang 1.16]()
 
 ```
 make all
 ```
 
-# 使用说明
+## 使用说明
 
 zk2zk是有两个子程序构成：`all_sync`和`t_sync`。如果你需要从源端ZooKeeper同步数据到目的端，且目的端ZooKeeper的临时节点能通过持久化节点在源端模拟出来，运行下面命令：  
 ```
@@ -18,7 +20,7 @@ zk2zk是有两个子程序构成：`all_sync`和`t_sync`。如果你需要从源
 `all_sync` 不仅负责将`srcAddr`的持久化节点和数据同步到`dstAddr`，同时使用持久化节点在`dstAddr`来模拟`srcAddr`的临时节点的整个生命周期。  
 `t_sync` 使用持久化节点在`dstAddr`来模拟`srcAddr`创建的临时节点的整个生命周期。
 
-# 可选参数
+## 可选参数
 
 在启动zk2zk的时候，可以通过执行时添加`-h`参数来了解更多可选选项。
 
@@ -57,13 +59,14 @@ Flags:
       --zkEventWorkerLimit int          the limit number of zookeeper event handler
 ```
 
-# 关于同步
-## 同步约束
+## 关于同步
+
+### 同步约束
 对于一个持久化节点，其可能是新建的，也可能是同步工具模拟出来的，因此为了能够区分出这两种情况，zk2zk的使用存在两个约束。  
 `约束1`：持久化节点的创建，只能通过src端创建。dst端创建的持久化节点会被认为是src端删除后未同步的结果，会在下次对账的时候被删除掉。  
 `约束2`：为了记录src端有哪些持久化节点是由dst端模拟，zk2zk会在dst端创建一个`/zk2zk_migration`节点，其子节点表示从dst端同步到src端的节点完整路径。  
 
-## 同步规则
+### 同步规则
 zk2zk是有两个子程序构成：`all_sync`和`t_sync`。不同子程序面对不同的情况，执行的操作不一样。
 由于两个子程序的源端zk和对端zk对象不同，为了避免混淆zk对象，
 在介绍同步规则的时候，我们统一将zk2zk同步的源端ZooKeeper称为src，zk2zk同步的对端ZooKeeper称为dst，而非子程序各自概念中的src和dst。  
@@ -112,7 +115,8 @@ zk2zk是有两个子程序构成：`all_sync`和`t_sync`。不同子程序面对
 
 我们可以从 `pkg/migration/strategy.go` 与 `pkg/migration/strategy_test.go` 代码中了解更多关于同步规则的细节和示例。
 
-# 关于日志
+## 关于日志
+
 `all_sync` 和 `t_sync` 在启动之后，都会在当前运行目录下，创建两类日志目录`runtime`和`monitor`。
 `runtime` 中保存的是程序运行的日志，`monitor` 中保存的是程序的审计日志。  
 
