@@ -6,8 +6,8 @@ zk2zk 是一款zookeeper 热迁移工具，帮助用户从自建平滑迁移到�
 
 zk2zk 包含两个子工具：
 
-- all_sync：将持久化和临时节点从源ZK 同步到目的ZK
-- t_sync：将临时节点从目的ZK 同步到源ZK
+- all_sync用于将源ZK 的持久化和临时节点同步到目的ZK
+- t_sync用于将目的ZK 的临时节点同步到源ZK
 
 通常配置数据是持久化节点，迁移过程：
 
@@ -26,22 +26,19 @@ zk2zk 包含两个子工具：
 
 #### 下载工具
 
-从[release](https://github.com/tencentyun/tse-tools/releases) 下载最新版本的发布包
+从[release](https://github.com/tencentyun/tse-tools/releases) 下载最新版本的程序包
 
 #### 启动工具
 
-如果你需要从源端ZooKeeper同步数据到目的端，且目的端ZooKeeper的临时节点能通过持久化节点在源端模拟出来，运行下面命令：  
-
-```
+```shell
+# 启动all_sync
 ./all_sync start --srcAddr [SRC_ADDR:SRC_PORT] --dstAddr [DST_ADDR:DST_PORT]
-```
 
-```
+# 启动t_sync
 ./t_sync start --srcAddr [DST_ADDR:DST_PORT] --dstAddr [SRC_ADDR:SRC_PORT]
 ```
 
-`all_sync` 不仅负责将`srcAddr`的持久化节点和数据同步到`dstAddr`，同时使用持久化节点在`dstAddr`来模拟`srcAddr`的临时节点的整个生命周期。  
-`t_sync` 使用持久化节点在`dstAddr`来模拟`srcAddr`创建的临时节点的整个生命周期。
+其中，SRC_ADDR:SRC_PORT表示源ZK 的访问地址，DST_ADDR:DST_PORT表示目的ZK 的访问地址
 
 #### 客户端迁移
 
@@ -64,6 +61,16 @@ zk2zk 包含两个子工具：
 对于一个持久化节点，其可能是新建的，也可能是同步工具模拟出来的，因此为了能够区分出这两种情况，zk2zk的使用存在两个约束。  
 `约束1`：持久化节点的创建，只能通过src端创建。dst端创建的持久化节点会被认为是src端删除后未同步的结果，会在下次对账的时候被删除掉。  
 `约束2`：为了记录src端有哪些持久化节点是由dst端模拟，zk2zk会在dst端创建一个`/zk2zk_migration`节点，其子节点表示从dst端同步到src端的节点完整路径。  
+
+
+all_sync将源ZK 的持久化和临时节点同步到目的ZK，t_sync将目的ZK 的临时节点同步到源ZK
+
+不仅负责将`srcAddr`的持久化节点和数据同步到`dstAddr`，同时使用持久化节点在`dstAddr`来模拟`srcAddr`的临时节点的整个生命周期。  
+
+t_sync
+
+- 使用持久化节点在`dstAddr`来模拟`srcAddr`创建的临时节点的整个生命周期。
+- 
 
 ## 启动参数
 
