@@ -15,4 +15,4 @@ TSE为用户提供常用的分布式或者微服务组件，帮助用户快速�
 
 ## 工具箱
 
-- zk2zk：zookeeper热迁移工具
+- [zk2zk](https://github.com/tencentyun/tse-tools/tree/main/zk2zk)：zookeeper热迁移工具
