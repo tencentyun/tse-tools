@@ -1,14 +1,8 @@
 # zk2zk
 
+## 简介
+
 zk2zk 是一款zookeeper数据迁移的工具。
-
-## 如何构建
-
-依赖 [Golang 1.16]()
-
-```
-make all
-```
 
 ## 使用说明
 
@@ -127,3 +121,11 @@ zk2zk是有两个子程序构成：`all_sync`和`t_sync`。不同子程序面对
 - 另一类是整体的同步记录，zk2zk会以 `SrcNodeCount: [%d]\tDstNodeCount: [%d]\tChangedNodeCount: [%d]` 的结构输出src端的节点个数、dst端的节点个数、对账会影响的节点个数。
 我们可以通过`grep SrcNodeCount` 来了解到整个同步工具的运行进度。当然，同步工具不会将`/zookeeper`和`/zk2zk_migration`自身以及其节点下所有子节点计算在内，
 所以如果同步完成了，SrcNodeCount的值通常是和DstNodeCount的值相等的。  
+
+## 如何构建
+
+依赖 [Golang 1.16]()
+
+```
+make all
+```
