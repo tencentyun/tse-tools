@@ -24,15 +24,28 @@ zk2zk 包含两个子工具：
 
 ## 使用指南
 
-zk2zk是有两个子程序构成：`all_sync`和`t_sync`。如果你需要从源端ZooKeeper同步数据到目的端，且目的端ZooKeeper的临时节点能通过持久化节点在源端模拟出来，运行下面命令：  
+### 下载工具
+
+
+### 启动工具
+
+如果你需要从源端ZooKeeper同步数据到目的端，且目的端ZooKeeper的临时节点能通过持久化节点在源端模拟出来，运行下面命令：  
+
 ```
 ./all_sync start --srcAddr [SRC_ADDR:SRC_PORT] --dstAddr [DST_ADDR:DST_PORT]
-./t_sync start --dstAddr [SRC_ADDR:SRC_PORT] --srcAddr [DST_ADDR:DST_PORT]
 ```
+
+```
+./t_sync start --srcAddr [DST_ADDR:DST_PORT] --dstAddr [SRC_ADDR:SRC_PORT]
+```
+
 `all_sync` 不仅负责将`srcAddr`的持久化节点和数据同步到`dstAddr`，同时使用持久化节点在`dstAddr`来模拟`srcAddr`的临时节点的整个生命周期。  
 `t_sync` 使用持久化节点在`dstAddr`来模拟`srcAddr`创建的临时节点的整个生命周期。
 
-### 关于日志
+### 客户端迁移
+
+
+### 查看日志
 
 `all_sync` 和 `t_sync` 在启动之后，都会在当前运行目录下，创建两类日志目录`runtime`和`monitor`。
 `runtime` 中保存的是程序运行的日志，`monitor` 中保存的是程序的审计日志。  
@@ -45,7 +58,8 @@ zk2zk是有两个子程序构成：`all_sync`和`t_sync`。如果你需要从源
 我们可以通过`grep SrcNodeCount` 来了解到整个同步工具的运行进度。当然，同步工具不会将`/zookeeper`和`/zk2zk_migration`自身以及其节点下所有子节点计算在内，
 所以如果同步完成了，SrcNodeCount的值通常是和DstNodeCount的值相等的。  
 
-### 同步约束
+### 注意事项
+
 对于一个持久化节点，其可能是新建的，也可能是同步工具模拟出来的，因此为了能够区分出这两种情况，zk2zk的使用存在两个约束。  
 `约束1`：持久化节点的创建，只能通过src端创建。dst端创建的持久化节点会被认为是src端删除后未同步的结果，会在下次对账的时候被删除掉。  
 `约束2`：为了记录src端有哪些持久化节点是由dst端模拟，zk2zk会在dst端创建一个`/zk2zk_migration`节点，其子节点表示从dst端同步到src端的节点完整路径。  
