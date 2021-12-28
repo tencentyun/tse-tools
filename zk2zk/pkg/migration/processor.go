@@ -2,9 +2,9 @@ package migration
 
 import (
 	"fmt"
+	"github.com/go-zookeeper/zk"
 	"github.com/tencentyun/zk2zk/pkg/log"
 	"github.com/tencentyun/zk2zk/pkg/zookeeper"
-	"github.com/go-zookeeper/zk"
 	"go.uber.org/zap"
 	"sync"
 	"time"

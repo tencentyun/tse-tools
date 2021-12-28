@@ -1,8 +1,8 @@
 package zookeeper
 
 import (
-	"github.com/tencentyun/zk2zk/pkg/log"
 	"github.com/go-zookeeper/zk"
+	"github.com/tencentyun/zk2zk/pkg/log"
 	"go.uber.org/zap"
 	"math"
 	"sync"

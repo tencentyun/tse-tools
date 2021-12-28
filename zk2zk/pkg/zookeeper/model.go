@@ -71,14 +71,14 @@ const (
 
 var (
 	eventNames = map[zk.EventType]string{
-		zk.EventNodeCreated:                  "EventNodeCreated",
-		zk.EventNodeDeleted:                  "EventNodeDeleted",
-		zk.EventNodeDataChanged:              "EventNodeDataChanged",
-		zk.EventNodeChildrenChanged:          "EventNodeChildrenChanged",
-		zk.EventSession:                      "EventSession",
-		zk.EventNotWatching:                  "EventNotWatching",
-		EventNodeOnlyWatch:         "MigrateEventNodeOnlyWatch",
-		EventNodeDeletedWithRecord: "MigrateEventNodeDeleteWithRecord",
+		zk.EventNodeCreated:         "EventNodeCreated",
+		zk.EventNodeDeleted:         "EventNodeDeleted",
+		zk.EventNodeDataChanged:     "EventNodeDataChanged",
+		zk.EventNodeChildrenChanged: "EventNodeChildrenChanged",
+		zk.EventSession:             "EventSession",
+		zk.EventNotWatching:         "EventNotWatching",
+		EventNodeOnlyWatch:          "MigrateEventNodeOnlyWatch",
+		EventNodeDeletedWithRecord:  "MigrateEventNodeDeleteWithRecord",
 	}
 )
 
