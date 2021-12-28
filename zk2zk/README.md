@@ -22,6 +22,14 @@ zk2zk 包含两个子工具：
 - 接入目的ZK 的客户端数据由t_sync 同步到源ZK
 - 对于还在源ZK 的客户端，可以读取注册到目的ZK 的客户端数据
 
+## 如何构建
+
+依赖 [Golang 1.16]()
+
+```
+make all
+```
+
 ## 使用指南
 
 #### 下载工具
@@ -43,19 +51,6 @@ zk2zk 包含两个子工具：
 #### 客户端迁移
 
 
-#### 查看日志
-
-`all_sync` 和 `t_sync` 在启动之后，都会在当前运行目录下，创建两类日志目录`runtime`和`monitor`。
-`runtime` 中保存的是程序运行的日志，`monitor` 中保存的是程序的审计日志。  
-
-对于运行日志，我们可以通过在启动时添加 `--logPath` 参数来调整其日志存储路径，`--logLevel`参数来调整其日志打印级别。更多选项，可以通过执行时添加`-h`参数来了解。  
-
-对于审计日志，我们也可以通过在启动时添加 `--monitorLogPath` 参数来调整其日志存储路径。审计日志中记录了两类信息：  
-- 一类是某个节点的整个生命周期，zk2zk会以 `[操作]\t[结果]\t[额外信息]\t[操作对象]` 的结构输出对一个节点操作的整个生命周期；  
-- 另一类是整体的同步记录，zk2zk会以 `SrcNodeCount: [%d]\tDstNodeCount: [%d]\tChangedNodeCount: [%d]` 的结构输出src端的节点个数、dst端的节点个数、对账会影响的节点个数。
-我们可以通过`grep SrcNodeCount` 来了解到整个同步工具的运行进度。当然，同步工具不会将`/zookeeper`和`/zk2zk_migration`自身以及其节点下所有子节点计算在内，
-所以如果同步完成了，SrcNodeCount的值通常是和DstNodeCount的值相等的。  
-
 #### 注意事项
 
 对于一个持久化节点，其可能是新建的，也可能是同步工具模拟出来的，因此为了能够区分出这两种情况，zk2zk的使用存在两个约束。  
@@ -71,6 +66,20 @@ t_sync
 
 - 使用持久化节点在`dstAddr`来模拟`srcAddr`创建的临时节点的整个生命周期。
 - 
+
+## 查看日志
+
+`all_sync` 和 `t_sync` 在启动之后，都会在当前运行目录下，创建两类日志目录`runtime`和`monitor`。
+`runtime` 中保存的是程序运行的日志，`monitor` 中保存的是程序的审计日志。  
+
+对于运行日志，我们可以通过在启动时添加 `--logPath` 参数来调整其日志存储路径，`--logLevel`参数来调整其日志打印级别。更多选项，可以通过执行时添加`-h`参数来了解。  
+
+对于审计日志，我们也可以通过在启动时添加 `--monitorLogPath` 参数来调整其日志存储路径。审计日志中记录了两类信息：  
+- 一类是某个节点的整个生命周期，zk2zk会以 `[操作]\t[结果]\t[额外信息]\t[操作对象]` 的结构输出对一个节点操作的整个生命周期；  
+- 另一类是整体的同步记录，zk2zk会以 `SrcNodeCount: [%d]\tDstNodeCount: [%d]\tChangedNodeCount: [%d]` 的结构输出src端的节点个数、dst端的节点个数、对账会影响的节点个数。
+我们可以通过`grep SrcNodeCount` 来了解到整个同步工具的运行进度。当然，同步工具不会将`/zookeeper`和`/zk2zk_migration`自身以及其节点下所有子节点计算在内，
+所以如果同步完成了，SrcNodeCount的值通常是和DstNodeCount的值相等的。  
+
 
 ## 启动参数
 
@@ -109,12 +118,4 @@ Flags:
       --workerRetryCnt int              the count of worker retry if failed
       --zkEventBuffer int               the length of zookeeper event buffer
       --zkEventWorkerLimit int          the limit number of zookeeper event handler
-```
-
-## 如何构建
-
-依赖 [Golang 1.16]()
-
-```
-make all
 ```
