@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/go-zookeeper/zk"
 	"github.com/tencentyun/zk2zk/pkg/log"
 	"github.com/tencentyun/zk2zk/pkg/zookeeper"
-	"github.com/go-zookeeper/zk"
 	"go.uber.org/atomic"
 	"go.uber.org/zap"
 	"strings"
@@ -72,6 +72,7 @@ type Synchronizer struct {
 	searchConcurrency  int
 	compareConcurrency int
 	evMediate          SyncMediator
+	shouldRecursive    bool
 
 	exitC chan struct{}
 
@@ -80,7 +81,7 @@ type Synchronizer struct {
 
 type SyncMediator func(ctx context.Context, src *zookeeper.Node, dst *zookeeper.Node) *Event
 
-func NewSynchronizer(watchPath string, srcAddrInfo, dstAddrInfo *zookeeper.AddrInfo, tunnel *Tunnel, manager *WatchManager, options ...SyncOption) *Synchronizer {
+func NewSynchronizer(watchPath string, srcAddrInfo, dstAddrInfo *zookeeper.AddrInfo, tunnel *Tunnel, manager *WatchManager, shouldRecursive bool, options ...SyncOption) *Synchronizer {
 	s := &Synchronizer{
 		watchPath:          watchPath,
 		srcAddrInfo:        srcAddrInfo,
@@ -92,6 +93,7 @@ func NewSynchronizer(watchPath string, srcAddrInfo, dstAddrInfo *zookeeper.AddrI
 		compareConcurrency: 16,
 		evMediate:          nil,
 		exitC:              make(chan struct{}),
+		shouldRecursive:    shouldRecursive,
 	}
 
 	for _, opt := range options {
@@ -173,9 +175,11 @@ func (s *Synchronizer) Sync() error {
 
 			dstNode, ok := dstNodeMap[srcPath]
 
+			srcConn := srcPool.NextCon()
+			dstConn := dstPool.NextCon()
 			var ev *Event
-			sCtx := context.WithValue(rootCtx, MediateCtxSrcConn, srcPool.NextCon())
-			dCtx := context.WithValue(sCtx, MediateCtxDstConn, dstPool.NextCon())
+			sCtx := context.WithValue(rootCtx, MediateCtxSrcConn, srcConn)
+			dCtx := context.WithValue(sCtx, MediateCtxDstConn, dstConn)
 			if ok { // src has, dst has
 				ev = s.evMediate(dCtx, &srcNode, &dstNode)
 			} else { // src has, dst not
@@ -186,7 +190,7 @@ func (s *Synchronizer) Sync() error {
 				if ev.Type != zookeeper.EventNodeOnlyWatch {
 					sum.changedNode.Inc()
 				}
-				s.postProcess(*ev, &srcNode)
+				s.postProcess(*ev, &srcNode, srcConn, dstConn)
 			}
 		}()
 	}
@@ -206,8 +210,10 @@ func (s *Synchronizer) Sync() error {
 
 			_, ok := srcNodeMap[dstPath]
 			if !ok {
-				sCtx := context.WithValue(rootCtx, MediateCtxSrcConn, srcPool.NextCon())
-				dCtx := context.WithValue(sCtx, MediateCtxDstConn, dstPool.NextCon())
+				srcConn := srcPool.NextCon()
+				dstConn := dstPool.NextCon()
+				sCtx := context.WithValue(rootCtx, MediateCtxSrcConn, srcConn)
+				dCtx := context.WithValue(sCtx, MediateCtxDstConn, dstConn)
 
 				// dst has, src not
 				ev := s.evMediate(dCtx, nil, &dstNode)
@@ -215,7 +221,7 @@ func (s *Synchronizer) Sync() error {
 					if ev.Type != zookeeper.EventNodeOnlyWatch {
 						sum.changedNode.Inc()
 					}
-					s.postProcess(*ev, nil)
+					s.postProcess(*ev, nil, srcConn, dstConn)
 				}
 			}
 
@@ -241,7 +247,41 @@ func (s *Synchronizer) GetWatcher() *WatchManager {
 	return s.watcher
 }
 
-func (s *Synchronizer) postProcess(event Event, srcNode *zookeeper.Node) {
+func (s *Synchronizer) postProcess(event Event, srcNode *zookeeper.Node, srcConn *zk.Conn, dstConn *zk.Conn) {
+	if s.shouldRecursive && event.Type == zk.EventNodeCreated && srcNode != nil {
+		_, err := getNodeFromZKConn(zookeeper.ParentOf(event.Path), dstConn)
+		if err != nil {
+			if err != zk.ErrNoNode {
+				log.ErrorZ("watcher check parent existence from dst fail.", zap.Error(err),
+					zap.String("path", event.Path),
+					zap.String("type", zookeeper.EventString(event.Type)),
+					zap.String("Operator", event.Operator.String()))
+				return
+			}
+
+			// dst not existence
+			parentNode, err := getNodeFromZKConn(zookeeper.ParentOf(event.Path), srcConn)
+			if err != nil {
+				log.ErrorZ("watcher check parent existence from src fail.", zap.Error(err),
+					zap.String("path", event.Path),
+					zap.String("type", zookeeper.EventString(event.Type)),
+					zap.String("Operator", event.Operator.String()))
+				return
+			}
+
+			s.postProcess(Event{
+				Type:             zk.EventNodeCreated,
+				State:            zookeeper.StateSyncConnected,
+				Path:             parentNode.Path,
+				Data:             parentNode.Data,
+				Operator:         OptSideTarget,
+				ShouldWatched:    !s.GetWatcher().HasWatchedRecord(parentNode.Path),
+				WatchedEphemeral: parentNode.IsEphemeral,
+			}, parentNode, srcConn, dstConn)
+		}
+		// parent exist
+	}
+
 	if event.Type != zookeeper.EventNodeOnlyWatch {
 		s.SendToEventTunnel(event)
 	}
@@ -306,4 +346,14 @@ type Summary struct {
 	srcNode     int
 	dstNode     int
 	changedNode atomic.Int64
+}
+
+func getNodeFromZKConn(path string, conn *zk.Conn) (*zookeeper.Node, error) {
+	nodeData, nodeStat, err := conn.Get(path)
+	if err != nil {
+		return nil, err
+	}
+
+	node := zookeeper.ConvertToNode(path, nodeData, nodeStat)
+	return &node, nil
 }

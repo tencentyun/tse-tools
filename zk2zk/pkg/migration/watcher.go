@@ -3,9 +3,9 @@ package migration
 import (
 	"context"
 	"errors"
+	"github.com/go-zookeeper/zk"
 	"github.com/tencentyun/zk2zk/pkg/log"
 	"github.com/tencentyun/zk2zk/pkg/zookeeper"
-	"github.com/go-zookeeper/zk"
 	"go.uber.org/zap"
 	"sync"
 )
@@ -74,12 +74,13 @@ type WatchManager struct {
 	compareConcurrency int
 	reWatchConcurrency int
 	evMediate          WatcherMediator
+	shouldRecursive    bool
 	stopC              chan struct{}
 }
 
 type WatcherMediator func(ctx context.Context, src *zookeeper.Node, dst *zookeeper.Node) *Event
 
-func NewWatchManager(srcAddr, dstAddr *zookeeper.AddrInfo, evTunnel *Tunnel, options ...WatcherManagerOption) *WatchManager {
+func NewWatchManager(srcAddr, dstAddr *zookeeper.AddrInfo, evTunnel *Tunnel, shouldRecursive bool, options ...WatcherManagerOption) *WatchManager {
 	wm := &WatchManager{
 		record:              NewWatchRecord(),
 		srcAddrInfo:         srcAddr,
@@ -93,6 +94,7 @@ func NewWatchManager(srcAddr, dstAddr *zookeeper.AddrInfo, evTunnel *Tunnel, opt
 		reWatchConcurrency:  8,
 		evMediate:           nil,
 		stopC:               make(chan struct{}),
+		shouldRecursive:     shouldRecursive,
 	}
 
 	for _, opt := range options {
@@ -128,7 +130,7 @@ func (w *WatchManager) StartWatch() error {
 		for {
 			select {
 			case ev := <-w.zkEventC:
-				limit<- struct{}{}
+				limit <- struct{}{}
 				go func() {
 					defer func() {
 						<-limit
@@ -420,7 +422,41 @@ func (w *WatchManager) handleNodeEvent(event zk.Event) {
 	}
 }
 
-func (w *WatchManager) postProcess(event Event) {
+func (w *WatchManager) postProcess(event Event, srcConn *zookeeper.Connection, dstConn *zookeeper.Connection) {
+	if w.shouldRecursive && event.Type == zk.EventNodeCreated {
+		_, err := getNodeFromConnect(zookeeper.ParentOf(event.Path), dstConn)
+		if err != nil {
+			if err != zk.ErrNoNode {
+				log.ErrorZ("watcher check parent existence from dst fail.", zap.Error(err),
+					zap.String("path", event.Path),
+					zap.String("type", zookeeper.EventString(event.Type)),
+					zap.String("Operator", event.Operator.String()))
+				return
+			}
+
+			// dst not existence
+			parentNode, err := getNodeFromConnect(zookeeper.ParentOf(event.Path), srcConn)
+			if err != nil {
+				log.ErrorZ("watcher check parent existence from src fail.", zap.Error(err),
+					zap.String("path", event.Path),
+					zap.String("type", zookeeper.EventString(event.Type)),
+					zap.String("Operator", event.Operator.String()))
+				return
+			}
+
+			w.postProcess(Event{
+				Type:             zk.EventNodeCreated,
+				State:            zookeeper.StateSyncConnected,
+				Path:             parentNode.Path,
+				Data:             parentNode.Data,
+				Operator:         OptSideTarget,
+				ShouldWatched:    !w.HasWatchedRecord(parentNode.Path),
+				WatchedEphemeral: parentNode.IsEphemeral,
+			}, srcConn, dstConn)
+		}
+		// parent exist
+	}
+
 	if event.Type != zookeeper.EventNodeOnlyWatch {
 		w.SendToEventTunnel(event)
 	}
@@ -441,6 +477,7 @@ func (w *WatchManager) postProcess(event Event) {
 				zap.String("path", event.Path),
 				zap.String("type", zookeeper.EventString(event.Type)),
 				zap.String("Operator", event.Operator.String()))
+			return
 		}
 	}
 }
@@ -466,7 +503,7 @@ func (w *WatchManager) compareData(path string) {
 
 	event := w.evMediate(w.metaCtx, srcChildren, dstChildren)
 	if event != nil {
-		w.postProcess(*event)
+		w.postProcess(*event, w.srcConn, w.dstConn)
 	}
 }
 
@@ -514,7 +551,7 @@ func (w *WatchManager) compareChildren(path string) {
 
 			event := w.evMediate(w.metaCtx, srcNode, nil)
 			if event != nil {
-				w.postProcess(*event)
+				w.postProcess(*event, w.srcConn, w.dstConn)
 			}
 		}()
 	}
@@ -535,7 +572,7 @@ func (w *WatchManager) compareChildren(path string) {
 
 			event := w.evMediate(w.metaCtx, nil, dstNode)
 			if event != nil {
-				w.postProcess(*event)
+				w.postProcess(*event, w.srcConn, w.dstConn)
 			}
 		}()
 	}
@@ -563,7 +600,7 @@ func (w *WatchManager) compareChildren(path string) {
 
 			event := w.evMediate(w.metaCtx, srcNode, dstNode)
 			if event != nil {
-				w.postProcess(*event)
+				w.postProcess(*event, w.srcConn, w.dstConn)
 			}
 		}()
 	}

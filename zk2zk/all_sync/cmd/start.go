@@ -2,11 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/go-zookeeper/zk"
+	"github.com/spf13/cobra"
 	"github.com/tencentyun/zk2zk/pkg/log"
 	"github.com/tencentyun/zk2zk/pkg/migration"
 	"github.com/tencentyun/zk2zk/pkg/zookeeper"
-	"github.com/go-zookeeper/zk"
-	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 	"os"
 	"os/signal"
@@ -182,7 +182,7 @@ func startCommandHandle(*cobra.Command, []string) {
 		migration.WatcherZKEventBufferOpt(startCfg.ZKEventBuffer),
 		migration.WatcherZkEventWorkerLimit(startCfg.ZKEventWorkerLimit),
 	}
-	watcher := migration.NewWatchManager(srcAddrInfo, dstAddrInfo, tunnel, watcherOpts...)
+	watcher := migration.NewWatchManager(srcAddrInfo, dstAddrInfo, tunnel, true, watcherOpts...)
 	err = watcher.StartWatch()
 	if err != nil {
 		log.ErrorZ("watcher init fail, exit.", zap.Error(err))
@@ -198,7 +198,7 @@ func startCommandHandle(*cobra.Command, []string) {
 		migration.DailyIntervalOpt(startCfg.SyncDailyInterval),
 		migration.SyncSummaryLoggerOpt(monitorLogger),
 	}
-	sync := migration.NewSynchronizer(startCfg.WatchPath, srcAddrInfo, dstAddrInfo, tunnel, watcher, syncOpts...)
+	sync := migration.NewSynchronizer(startCfg.WatchPath, srcAddrInfo, dstAddrInfo, tunnel, watcher, true, syncOpts...)
 	err = sync.Sync()
 	if err != nil {
 		log.ErrorZ("synchronizer first sync fail, exit.", zap.Error(err))
