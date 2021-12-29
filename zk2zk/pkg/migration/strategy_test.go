@@ -28,7 +28,7 @@ func mockRecordNode() *zookeeper.Node {
 }
 
 func mockWatcher() *WatchManager {
-	return NewWatchManager(nil, nil, nil)
+	return NewWatchManager(nil, nil, nil, false)
 }
 
 func mockSrcE() *zookeeper.Node {
