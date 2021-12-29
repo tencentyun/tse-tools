@@ -8,7 +8,7 @@ nohup ./all_sync start --logEnableStdout=false --srcAddr SRCADDR --dstAddr DSTAD
 nohup ./t_sync start --logEnableStdout=false --srcAddr DSTADDR --dstAddr SRCADDR  >> t_sync_stdout 2>&1 &
 ```
 
-## 启动阶段
+## 启动阶段全量同步
 
 ### all_sync
 
@@ -21,7 +21,7 @@ zk2zk会在启动的时候会同步和watch所有的节点，此处测试zk2zk�
 
 - case3：启动前目的端ZK创建10000个临时节点。zk2zk启动同步耗时：10s。
 
-## 运行阶段
+## 运行阶段增量同步
 
 #### all_sync
 
