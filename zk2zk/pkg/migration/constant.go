@@ -21,4 +21,5 @@ const (
 	MediateCtxSrcConn = "MediateCtxSrcConn"
 	MediateCtxDstConn = "MediateCtxDstConn"
 	MediateCtxWatcher = "MediateCtxWatcher"
+	MediateCtxSummary = "MediateCtxSummary"
 )

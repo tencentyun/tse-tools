@@ -22,9 +22,15 @@ func AllSyncMediate(context context.Context, src *zookeeper.Node, dst *zookeeper
 			return nil
 		}
 
+		summary := context.Value(MediateCtxSummary)
 		if src.IsEphemeral {
-			watcher := context.Value(MediateCtxWatcher).(*WatchManager)
 			// 5, 6
+			if summary != nil {
+				summary.(*Summary).srcNode.Inc()
+				summary.(*Summary).changedNode.Inc()
+			}
+
+			watcher := context.Value(MediateCtxWatcher).(*WatchManager)
 			return &Event{
 				Type:             zk.EventNodeCreated,
 				State:            zookeeper.StateSyncConnected,
@@ -45,6 +51,11 @@ func AllSyncMediate(context context.Context, src *zookeeper.Node, dst *zookeeper
 			}
 
 			if !isDst2src {
+				if summary != nil {
+					summary.(*Summary).srcNode.Inc()
+					summary.(*Summary).changedNode.Inc()
+				}
+
 				return &Event{
 					Type:             zk.EventNodeCreated,
 					State:            zookeeper.StateSyncConnected,
@@ -69,6 +80,12 @@ func AllSyncMediate(context context.Context, src *zookeeper.Node, dst *zookeeper
 
 		if !dst.IsEphemeral {
 			// 11,15
+			summary := context.Value(MediateCtxSummary)
+			if summary != nil {
+				summary.(*Summary).dstNode.Inc()
+				summary.(*Summary).changedNode.Inc()
+			}
+
 			return &Event{
 				Type:          zk.EventNodeDeleted,
 				State:         zookeeper.StateSyncConnected,
@@ -97,6 +114,12 @@ func AllSyncMediate(context context.Context, src *zookeeper.Node, dst *zookeeper
 
 		if !dst.IsEphemeral {
 			// 3, 7
+			summary := context.Value(MediateCtxSummary)
+			if summary != nil {
+				summary.(*Summary).dstNode.Inc()
+				summary.(*Summary).srcNode.Inc()
+			}
+
 			watcher := context.Value(MediateCtxWatcher).(*WatchManager)
 			if !zookeeper.CompareData(src.Data, dst.Data) {
 				return &Event{
@@ -147,9 +170,15 @@ func TSyncMediate(context context.Context, src *zookeeper.Node, dst *zookeeper.N
 
 		// 17, 18, 21, 22
 		if src.IsEphemeral {
+			// 21, 22
+			summary := context.Value(MediateCtxSummary)
+			if summary != nil {
+				summary.(*Summary).srcNode.Inc()
+				summary.(*Summary).changedNode.Inc()
+			}
+
 			recorder := context.Value(MediateCtxSrcConn).(Recorder)
 			watcher := context.Value(MediateCtxWatcher).(*WatchManager)
-			// 21, 22
 			_, err := recorder.Create(PathToRecordNode(src.Path), []byte(""), 0, zk.WorldACL(zk.PermAll))
 			if err != nil {
 				if err != zk.ErrNodeExists {
@@ -192,6 +221,12 @@ func TSyncMediate(context context.Context, src *zookeeper.Node, dst *zookeeper.N
 			}
 
 			if ok {
+				summary := context.Value(MediateCtxSummary)
+				if summary != nil {
+					summary.(*Summary).dstNode.Inc()
+					summary.(*Summary).changedNode.Inc()
+				}
+
 				return &Event{
 					Type:          zookeeper.EventNodeDeletedWithRecord,
 					State:         zookeeper.StateSyncConnected,
@@ -245,6 +280,12 @@ func TSyncMediate(context context.Context, src *zookeeper.Node, dst *zookeeper.N
 			log.ErrorZ("ephemeral check failed: src and dst both are ephemeral.", zap.String("path", src.Path))
 			return nil
 		} else { // 23
+			summary := context.Value(MediateCtxSummary)
+			if summary != nil {
+				summary.(*Summary).srcNode.Inc()
+				summary.(*Summary).dstNode.Inc()
+			}
+
 			watcher := context.Value(MediateCtxWatcher).(*WatchManager)
 			if !zookeeper.CompareData(src.Data, dst.Data) {
 				return &Event{

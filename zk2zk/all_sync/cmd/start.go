@@ -52,6 +52,7 @@ type startConfig struct {
 	LogConfig
 
 	MonitorLogPath string
+	SummaryLogPath string
 }
 
 var startCfg startConfig
@@ -86,13 +87,14 @@ func init() {
 	startCmd.Flags().IntVar(&startCfg.SyncDailyInterval, "syncDailyInterval", 0, "the daily sync interval")
 
 	startCmd.Flags().StringVar(&startCfg.LogLevel, "logLevel", "info", "log level, options are debug/info/warn/error")
-	startCmd.Flags().StringVar(&startCfg.LogPath, "logPath", "./runtime/all_sync.log", "the path of the log file saved")
+	startCmd.Flags().StringVar(&startCfg.LogPath, "logPath", "./log/all_sync.log", "the path of the log file saved")
 	startCmd.Flags().IntVar(&startCfg.LogMaxSize, "logMaxFileSize", 30, "the maximum size in megabytes of the log file before log gets rotated")
 	startCmd.Flags().IntVar(&startCfg.LogMaxBackup, "logMaxBackup", 30, "the maximum number of old log files to retain")
 	startCmd.Flags().BoolVar(&startCfg.LogEnableStdout, "logEnableStdout", true, "whether print log to stdout")
 	startCmd.Flags().BoolVar(&startCfg.LogCompress, "LogCompress", false, "whether compress log file")
 
-	startCmd.Flags().StringVar(&startCfg.MonitorLogPath, "monitorLogPath", "./monitor/all_sync.log", "the path of the monitor log file saved")
+	startCmd.Flags().StringVar(&startCfg.MonitorLogPath, "monitorLogPath", "./log/all_sync_info.log", "the path of the monitor log file saved")
+	startCmd.Flags().StringVar(&startCfg.SummaryLogPath, "summaryLogPath", "./log/all_sync_stat.log", "the path of the summary log file saved")
 
 	_ = startCmd.MarkFlagRequired("srcAddr")
 	_ = startCmd.MarkFlagRequired("dstAddr")
@@ -140,6 +142,22 @@ func startCommandHandle(*cobra.Command, []string) {
 		monitorLogOptions = append(monitorLogOptions, log.AppendWriter(writer))
 	}
 	monitorLogger := log.NewLogger(monitorLogOptions...)
+
+	summaryLogOptions := []log.Option{
+		log.EnableCaller(true),
+		log.EnableDefaultOutput(false),
+		log.EnableStdout(startCfg.LogEnableStdout),
+		log.EnableDevelopment(false),
+		log.LevelOpt(level),
+	}
+	if len(startCfg.SummaryLogPath) != 0 {
+		writer := log.CountableIOWriter(startCfg.SummaryLogPath,
+			startCfg.LogMaxSize,
+			startCfg.LogMaxBackup,
+			startCfg.LogCompress)
+		summaryLogOptions = append(summaryLogOptions, log.AppendWriter(writer))
+	}
+	summaryLogger := log.NewLogger(summaryLogOptions...)
 
 	srcAddrInfo := &zookeeper.AddrInfo{
 		Addr:           startCfg.SrcAddr,
@@ -196,7 +214,7 @@ func startCommandHandle(*cobra.Command, []string) {
 		migration.SyncCompareConcurrencyOpt(startCfg.SyncCompareConcurrency),
 		migration.SyncSearchConcurrencyOpt(startCfg.SyncSearchConcurrency),
 		migration.DailyIntervalOpt(startCfg.SyncDailyInterval),
-		migration.SyncSummaryLoggerOpt(monitorLogger),
+		migration.SyncSummaryLoggerOpt(summaryLogger),
 	}
 	sync := migration.NewSynchronizer(startCfg.WatchPath, srcAddrInfo, dstAddrInfo, tunnel, watcher, true, syncOpts...)
 	err = sync.Sync()

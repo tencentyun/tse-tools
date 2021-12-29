@@ -156,10 +156,8 @@ func (s *Synchronizer) Sync() error {
 
 	//os.Exit(-1)
 	var sum Summary
-	sum.srcNode = len(srcNodeMap)
-	sum.dstNode = len(dstNodeMap)
-
-	rootCtx := context.WithValue(context.Background(), MediateCtxWatcher, s.watcher)
+	sumCtx := context.WithValue(context.Background(), MediateCtxSummary, &sum)
+	watcherCtx := context.WithValue(sumCtx, MediateCtxWatcher, s.watcher)
 	var srcWg sync.WaitGroup
 	srcWg.Add(len(srcNodeMap))
 	limit := make(chan struct{}, s.compareConcurrency)
@@ -178,7 +176,7 @@ func (s *Synchronizer) Sync() error {
 			srcConn := srcPool.NextCon()
 			dstConn := dstPool.NextCon()
 			var ev *Event
-			sCtx := context.WithValue(rootCtx, MediateCtxSrcConn, srcConn)
+			sCtx := context.WithValue(watcherCtx, MediateCtxSrcConn, srcConn)
 			dCtx := context.WithValue(sCtx, MediateCtxDstConn, dstConn)
 			if ok { // src has, dst has
 				ev = s.evMediate(dCtx, &srcNode, &dstNode)
@@ -187,9 +185,6 @@ func (s *Synchronizer) Sync() error {
 			}
 
 			if ev != nil {
-				if ev.Type != zookeeper.EventNodeOnlyWatch {
-					sum.changedNode.Inc()
-				}
 				s.postProcess(*ev, &srcNode, srcConn, dstConn)
 			}
 		}()
@@ -212,15 +207,12 @@ func (s *Synchronizer) Sync() error {
 			if !ok {
 				srcConn := srcPool.NextCon()
 				dstConn := dstPool.NextCon()
-				sCtx := context.WithValue(rootCtx, MediateCtxSrcConn, srcConn)
+				sCtx := context.WithValue(watcherCtx, MediateCtxSrcConn, srcConn)
 				dCtx := context.WithValue(sCtx, MediateCtxDstConn, dstConn)
 
 				// dst has, src not
 				ev := s.evMediate(dCtx, nil, &dstNode)
 				if ev != nil {
-					if ev.Type != zookeeper.EventNodeOnlyWatch {
-						sum.changedNode.Inc()
-					}
 					s.postProcess(*ev, nil, srcConn, dstConn)
 				}
 			}
@@ -308,8 +300,8 @@ func (s *Synchronizer) postProcess(event Event, srcNode *zookeeper.Node, srcConn
 
 func (s *Synchronizer) sumLog(summary Summary) {
 	if s.summaryLogger != nil {
-		s.summaryLogger.Info(fmt.Sprintf("SrcNodeCount: [%d]\t DstNodeCount: [%d]\t ChangedNodeCount: [%d]\t",
-			summary.srcNode, summary.dstNode, summary.changedNode.Load()))
+		s.summaryLogger.Info(fmt.Sprintf("SrcNodeCount: [%d]\t DstNodeCount: [%d]\t ChangingNodeCount: [%d]\t",
+			summary.srcNode.Load(), summary.dstNode.Load(), summary.changedNode.Load()))
 	}
 }
 
@@ -343,8 +335,8 @@ func getNodeMap(pool *zookeeper.ZkConnGroup, watchPath string) (map[string]zooke
 }
 
 type Summary struct {
-	srcNode     int
-	dstNode     int
+	srcNode     atomic.Int64
+	dstNode     atomic.Int64
 	changedNode atomic.Int64
 }
 
