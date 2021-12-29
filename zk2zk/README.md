@@ -77,8 +77,15 @@ zk2zk 包含两个子工具：
 
 #### 查看日志
 
+
 `all_sync` 和 `t_sync` 在启动之后，都会在当前运行目录下，创建两类日志目录`runtime`和`monitor`。
 `runtime` 中保存的是程序运行的日志，`monitor` 中保存的是程序的审计日志。  
+
+```
+monitor/
+  all_sync.log
+  t_sync.log
+```
 
 对于运行日志，其记录了程序内部的运行情况，通过运行日志，可以了解程序的运行状态。  
 
