@@ -82,6 +82,11 @@ zk2zk 包含两个子工具：
 `runtime` 中保存的是程序运行的日志，`monitor` 中保存的是程序的审计日志。  
 
 ```
+all_sync
+t_sync
+runtime/
+  all_sync.log
+  t_sync.log
 monitor/
   all_sync.log
   t_sync.log
