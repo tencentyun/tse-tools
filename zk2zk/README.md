@@ -26,7 +26,7 @@ zk2zk 包含两个子工具：
 
 #### 下载工具
 
-从[release](https://github.com/tencentyun/tse-tools/releases) 下载最新版本的程序包
+从 [release](https://github.com/tencentyun/tse-tools/releases) 下载最新版本的程序包
 
 #### 启动工具
 
