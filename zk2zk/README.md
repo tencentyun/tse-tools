@@ -92,15 +92,18 @@ log/
 对于运行日志，其记录了程序内部的运行情况，通过运行日志，可以了解程序的运行状态。  
 
 对于数据同步的变更记录日志，其记录了节点的操作信息，zk2zk会以 `[操作]\t[结果]\t[额外信息]\t[操作对象]` 的结构输出对某个节点进行过的同步操作。
-示例日志如下所示，日志记录了客户端在源ZK对`/service1045`进行操作时，`all_sync` 程序在目的ZK同步进行的操作。
+示例日志如下所示，日志记录了客户端在源ZK对`/service199/provider/ins-199`进行操作时，`all_sync` 程序在目的ZK同步进行的操作。
 
-<img src="./docs/node_status_log.png" width="80%"/>
+<img src="./docs/all_sync_info_log.png" width="80%"/>
   
-对于数据同步的进度统计日志，其记录了程序的同步进度信息，zk2zk会以 `SrcNodeCount: [%d]\tDstNodeCount: [%d]\tChangedNodeCount: [%d]` 的结构输出src端的节点个数、dst端的节点个数、对账会影响的节点个数。
-我们可以通过`grep SrcNodeCount` 来了解到整个同步工具的运行进度。当然，`/zookeeper`和`/zk2zk_migration`自身以及其子节点不会被计算在内。
-示例日志如下所示，日志记录了同步程序运行时，源ZK和目的ZK节点的同步进度。
+对于数据同步的进度统计日志，其记录了程序的同步进度信息，zk2zk会以 `SrcNodeCount: [%d]\tDstNodeCount: [%d]\tChangingNodeCount: [%d]` 的结构
+输出子程序负责同步的src端的节点个数、dst端的节点个数、需要同步的节点个数。
+当然，`/zookeeper`和`/zk2zk_migration`自身以及其子节点不会被计算在内。
+示例日志如下所示，日志记录了同步程序运行时，`all_sync`和`t_sync`的同步进度。
 
-<img src="./docs/node_summary_log.png" width="80%"/>  
+<img src="./docs/all_sync_stat_log.png" width="80%"/>
+  
+<img src="./docs/t_sync_stat_log.png" width="80%"/>  
 
 #### 启动参数
 
@@ -123,11 +126,12 @@ Flags:
       --logLevel string                 log level, options are debug/info/warn/error (default "info")
       --logMaxBackup int                the maximum number of old log files to retain (default 30)
       --logMaxFileSize int              the maximum size in megabytes of the log file before log gets rotated (default 30)
-      --logPath string                  the path of the log file saved (default "./runtime/all_sync.log")
-      --monitorLogPath string           the path of the monitor log file saved (default "./monitor/all_sync.log")
+      --logPath string                  the path of the log file saved (default "./log/all_sync.log")
+      --monitorLogPath string           the path of the monitor log file saved (default "./log/all_sync_info.log")
       --path string                     the root path of node which synchronized (default "/")
       --srcAddr stringArray             the zookeeper address of source, required option
       --srcSession int                  the second of source zookeeper session timeout (default 10)
+      --summaryLogPath string           the path of the summary log file saved (default "./log/all_sync_stat.log")
       --syncCompareConcurrency int      the sync compare concurrency
       --syncDailyInterval int           the daily sync interval
       --syncSearchConcurrency int       the sync search concurrency
@@ -138,7 +142,7 @@ Flags:
       --workerNum int                   the number of workers which are used to apply changes
       --workerRetryCnt int              the count of worker retry if failed
       --zkEventBuffer int               the length of zookeeper event buffer
-      --zkEventWorkerLimit int          the limit number of zookeeper event handler
+      --zkEventWorkerLimit int          the limit number of zookeeper event handle
 ```
 
 ## 如何构建
