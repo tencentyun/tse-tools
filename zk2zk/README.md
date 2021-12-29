@@ -84,12 +84,13 @@ zk2zk 包含两个子工具：
 ```
 all_sync
 t_sync
-runtime/
-  all_sync.log
-  t_sync.log
-monitor/
-  all_sync.log
-  t_sync.log
+log/
+  runtime/
+    all_sync.log
+    t_sync.log
+  monitor/
+    all_sync.log
+    t_sync.log
 ```
 
 对于运行日志，其记录了程序内部的运行情况，通过运行日志，可以了解程序的运行状态。  
