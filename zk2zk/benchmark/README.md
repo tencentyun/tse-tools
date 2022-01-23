@@ -8,6 +8,13 @@ nohup ./all_sync start --logEnableStdout=false --srcAddr SRCADDR --dstAddr DSTAD
 nohup ./t_sync start --logEnableStdout=false --srcAddr DSTADDR --dstAddr SRCADDR  >> t_sync_stdout 2>&1 &
 ```
 
+资源规格：
+
+- zookeeper: 2C4G，3个节点
+- 同步工具：2C4G，1个节点
+
+注意事项：以下测试数据是在zookeeper和同步工具没有达到瓶颈的情况，可以提升
+
 ## 启动时全量同步
 
 ### all_sync
